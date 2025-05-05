@@ -3,3 +3,4 @@ venv/
 venv310/
 .env
 finetuned_model/
+data/

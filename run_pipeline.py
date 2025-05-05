@@ -24,6 +24,7 @@ def main():
     parser.add_argument('--skip-classify', action='store_true', help='Skip sentiment/topic classification step')
     parser.add_argument('--skip-topic', action='store_true', help='Skip topic classification (topic_transformers.py)')
     parser.add_argument('--skip-sentiment', action='store_true', help='Skip sentiment classification (sentiment_transformers.py)')
+    parser.add_argument('--skip-fine-tune', action='store_true', help='Skip fine-tuning and evaluation step')
     args = parser.parse_args()
 
     steps = []
@@ -35,10 +36,9 @@ def main():
         steps.append(('vectorize_articles.py', 'Vectorizing articles (TF-IDF)'))
     if not args.skip_classify:
         steps.append(('classify_sentiment_topic.py', 'Classifying sentiment & topic (transformers)'))
-    if not args.skip_topic:
-        steps.append(('topic_transformers.py', 'Topic classification (transformers)'))
-    if not args.skip_sentiment:
-        steps.append(('sentiment_transformers.py', 'Sentiment classification (transformers)'))
+
+    if not args.skip_fine_tune:
+        steps.append(('fine_tune_and_evaluate.py', 'Fine-tuning and evaluating models'))
 
     cwd = Path(__file__).parent
     for script, desc in steps:

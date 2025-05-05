@@ -31,7 +31,18 @@ def load_articles(json_path, label_type):
     return articles
 
 def prepare_label_mapping(articles):
+    # Ensure we have at least 2 unique labels
     labels = sorted(list(set(a['label'] for a in articles)))
+    print(f'Unique labels found: {labels}')
+    
+    if len(labels) < 2:
+        # If not enough labels, create a binary classification
+        if len(labels) == 1:
+            base_label = labels[0]
+            labels = [f'{base_label}_negative', f'{base_label}_positive']
+        else:
+            labels = ['negative', 'positive']
+    
     label2id = {l: i for i, l in enumerate(labels)}
     id2label = {i: l for l, i in label2id.items()}
     return label2id, id2label
@@ -53,10 +64,28 @@ def to_hf_dataset(data, label2id):
 def compute_metrics(pred, id2label):
     preds = np.argmax(pred.predictions, axis=1)
     labels = pred.label_ids
-    acc = accuracy_score(labels, preds)
-    f1 = f1_score(labels, preds, average='weighted')
-    report = classification_report(labels, preds, target_names=[id2label[i] for i in sorted(id2label.keys())])
-    return {'accuracy': acc, 'f1': f1, 'report': report}
+    
+    # Ensure labels and preds are numpy arrays
+    labels = np.array(labels)
+    preds = np.array(preds)
+    
+    # Compute metrics with error handling
+    try:
+        acc = accuracy_score(labels, preds)
+        f1 = f1_score(labels, preds, average='weighted')
+        
+        # Dynamically generate target names
+        unique_labels = sorted(set(labels))
+        target_names = [id2label[i] for i in unique_labels]
+        
+        report = classification_report(labels, preds, target_names=target_names, zero_division=0)
+        
+        return {'accuracy': acc, 'f1': f1, 'report': report}
+    except Exception as e:
+        print(f'Metrics computation error: {e}')
+        print(f'Unique labels: {np.unique(labels)}')
+        print(f'Unique predictions: {np.unique(preds)}')
+        return {'accuracy': 0, 'f1': 0, 'report': str(e)}
 
 def evaluate_model(trainer, dataset, id2label):
     results = trainer.predict(dataset)
@@ -159,11 +188,26 @@ def main():
     print(ft_metrics['report'])
 
     # Save metrics
-    with open(os.path.join(args.output_dir, f'metrics_{args.language}_{args.task}.json'), 'w', encoding='utf-8') as f:
-        json.dump({
-            'original': orig_metrics,
-            'fine_tuned': ft_metrics
-        }, f, indent=2, ensure_ascii=False)
+    # Prepare metrics for saving
+    metrics_to_save = {
+        'original_model': orig_metrics,
+        'finetuned_model': ft_metrics,
+        'language': args.language,
+        'task': args.task,
+        'model_name': model_name,
+        'training_params': {
+            'epochs': args.epochs,
+            'batch_size': args.batch_size
+        }
+    }
+    
+    # Ensure output directory exists
+    os.makedirs(args.output_dir, exist_ok=True)
+    
+    # Save metrics
+    metrics_file = os.path.join(args.output_dir, f'metrics_{args.language}_{args.task}.json')
+    with open(metrics_file, 'w', encoding='utf-8') as f:
+        json.dump(metrics_to_save, f, indent=2, ensure_ascii=False)
 
     # Save portable model (for deployment/use elsewhere)
     portable_dir = os.path.join(args.output_dir, f'portable_{args.language}_{args.task}')
