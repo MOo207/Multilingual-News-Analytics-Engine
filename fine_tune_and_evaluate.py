@@ -39,9 +39,9 @@ def prepare_label_mapping(articles):
         # If not enough labels, create a binary classification
         if len(labels) == 1:
             base_label = labels[0]
-            labels = [f'{base_label}_negative', f'{base_label}_positive']
+            labels = [f'{base_label}_negative', f'{base_label}_positive', f'{base_label}_neutral']
         else:
-            labels = ['negative', 'positive']
+            labels = ['negative', 'positive', 'neutral']
     
     label2id = {l: i for i, l in enumerate(labels)}
     id2label = {i: l for l, i in label2id.items()}

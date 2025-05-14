@@ -32,9 +32,9 @@ class MultilingualNewsAnalyzer:
         
         # Topic Classification Model (placeholder, as we don't have a fine-tuned topic model)
         self.topic_labels = [
-            'business', 'technology', 'science', 
-            'politics', 'entertainment', 'sports'
-        ]
+        'politics', 'sports', 'business', 'technology', 'health', 'entertainment',
+        'science', 'world', 'local', 'environment', 'crime', 'education', 'opinion'
+    ]
     
     def analyze_sentiment(self, text):
         """

@@ -10,7 +10,7 @@ import concurrent.futures
 from tqdm import tqdm
 
 CSV_FILES = [
-    r'Datasets/One Week of Global News Feeds/news-week-17aug24.csv',
+    r'Datasets/One Week of Global News Feeds/news-week-18aug24.csv',
     # r'Datasets/One Week of Global News Feeds/news-week-18aug24.csv'
 ]
 OUTPUT_FILE = 'data/raw_articles.json'
@@ -85,7 +85,7 @@ def process_csv_row_with_lang(row):
 
 def main():
     all_rows = []
-    max_per_lang = 100
+    max_per_lang = 150 # for quick processing
     lang_rows = {'ar': [], 'en': []}
     for csv_file in CSV_FILES:
         with open(csv_file, encoding='utf-8') as f:
